@@ -4,12 +4,14 @@ import numpy as np
 
 def total_return(portfolio: pd.Series) -> float:
     """Percentage gain from first to last value."""
-    pass
+    return (portfolio.iloc[-1] / portfolio.iloc[0]) - 1
 
 
 def annualized_return(portfolio: pd.Series) -> float:
     """CAGR over the backtest period."""
-    pass
+    days = (portfolio.index[-1] - portfolio.index[0]).days
+    years = days / 365.25
+    return (1 + total_return(portfolio)) ** (1 / years) - 1
 
 
 def sharpe_ratio(portfolio: pd.Series, risk_free_rate: float = 0.04) -> float:
