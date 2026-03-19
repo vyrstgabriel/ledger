@@ -10,8 +10,30 @@ def run_backtest(prices: pd.DataFrame, initial_investment: float) -> pd.DataFram
     indexed by date.
     """
     # daily returns per ticker
-    # equal weights -> weighted daily portfolio return
-    # compound into dollar value starting at initial_investment
-    # fetch SPY for same date range, align dates, do the same
-    # return combined df
-    pass
+    daily_returns = prices.pct_change().dropna()
+
+    # equalize weights
+    weights = 1 / len(prices.columns)
+
+    # weighted portfolio return per day
+    portfolio_return = daily_returns.mul(weights).sum(axis=1)
+
+    # compound into dollar value
+    portfolio_values = initial_investment * (1 + portfolio_return).cumprod()
+
+    # fetch SPY for same date range
+    start = prices.index[0].strftime("%Y-%m-%d")
+    end = prices.index[-1].strftime("%Y-%m-%d")
+    spy_prices, _ = fetch_prices(["SPY"], start, end)
+
+    # align SPY to portfolio dates
+    spy_prices = spy_prices.reindex(portfolio_values.index).ffill()
+
+    # SPY daily returns and dollar value
+    spy_returns = spy_prices["SPY"].pct_change().dropna()
+    benchmark_values = initial_investment * (1 + spy_returns).cumprod()
+
+    return pd.DataFrame({
+        "portfolio": portfolio_values,
+        "benchmark": benchmark_values,
+    })
