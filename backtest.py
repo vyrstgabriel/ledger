@@ -30,7 +30,7 @@ def run_backtest(prices: pd.DataFrame, initial_investment: float) -> pd.DataFram
     spy_prices = spy_prices.reindex(portfolio_values.index).ffill()
 
     # SPY daily returns and dollar value
-    spy_returns = spy_prices["SPY"].pct_change().dropna()
+    spy_returns = spy_prices["SPY"].pct_change().fillna(0)
     benchmark_values = initial_investment * (1 + spy_returns).cumprod()
 
     return pd.DataFrame({

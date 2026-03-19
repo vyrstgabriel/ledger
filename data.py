@@ -16,26 +16,20 @@ def fetch_prices(tickers: list[str], start: str, end: str) -> pd.DataFrame:
         Columns with no data (bad tickers) are dropped.
         Raises ValueError if no valid data is returned.
     """
-    raw = yf.download(tickers, start=start, end=end, auto_adjust=True, progress=False)
+    # Download each ticker individually to avoid yfinance batch drop bug
+    frames = {}
+    missing = []
+    for ticker in tickers:
+        raw = yf.download(ticker, start=start, end=end, auto_adjust=True, progress=False, multi_level_index=False)
+        if raw.empty or "Close" not in raw.columns:
+            missing.append(ticker)
+        else:
+            frames[ticker] = raw["Close"].squeeze()
 
-    if raw.empty:
-        raise ValueError(f"No price data returned for tickers: {tickers}")
-
-    prices = raw["Close"]
-
-    # yfinance returns a Series (not DataFrame) when only one ticker is given
-    if isinstance(prices, pd.Series):
-        prices = prices.to_frame(name=tickers[0])
-
-    # Ensure columns match requested tickers (in case some returned no data)
-    prices = prices.reindex(columns=tickers)
-    missing = prices.columns[prices.isna().all()].tolist()
-    if missing:
-        prices = prices.drop(columns=missing)
-
-    if prices.empty or len(prices.columns) == 0:
+    if not frames:
         raise ValueError(f"No valid data returned for any ticker: {tickers}")
 
+    prices = pd.DataFrame(frames)
     prices.index = pd.to_datetime(prices.index)
     prices.index.name = "Date"
 
