@@ -18,14 +18,22 @@ def sharpe_ratio(portfolio: pd.Series, risk_free_rate: float = 0.04) -> float:
     """
     Risk-adjusted return. risk_free_rate is annual (default ~4%, roughly current T-bills).
     """
-    pass
+    daily_returns = portfolio.pct_change().dropna()
+    excess = daily_returns - (risk_free_rate / 252)
+    return (excess.mean() / excess.std()) * np.sqrt(252)
 
 
 def max_drawdown(portfolio: pd.Series) -> float:
     """Largest peak-to-trough decline. Always <= 0."""
-    pass
+    peak = portfolio.cummax()
+    drawdown = (portfolio - peak) / peak
+    return drawdown.min()
 
 
 def summary(portfolio: pd.Series, risk_free_rate: float = 0.04) -> dict:
-    # TODO: aggregate the four metrics above into a dict
-    pass
+    return {
+        "total_return": total_return(portfolio),
+        "annualized_return": annualized_return(portfolio),
+        "sharpe_ratio": sharpe_ratio(portfolio, risk_free_rate),
+        "max_drawdown": max_drawdown(portfolio)
+    }
