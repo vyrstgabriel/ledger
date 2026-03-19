@@ -29,3 +29,4 @@ streamlit run app.py
 | `data.py` | Fetches adjusted closing prices from Yahoo Finance via yfinance |
 | `backtest.py` | Computes daily portfolio and benchmark values from price data |
 | `metrics.py` | Calculates total return, annualized return, Sharpe ratio, max drawdown |
+# ledger
