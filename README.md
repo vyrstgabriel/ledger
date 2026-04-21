@@ -1,6 +1,6 @@
 # Ledger
 
-**Live app: [ledger-su8jaqyb4g4fswdfug5vyg.streamlit.app](https://ledger-su8jaqyb4g4fswdfug5vyg.streamlit.app)**
+**Live app: [ledger-su8jaqyb4g4fswdfug5vyg.streamlit.app](https://ledger.streamlit.app/)**
 
 A portfolio backtesting tool built with Streamlit. Enter any set of stock tickers, a date range, and an initial investment amount to see how an equal-weighted portfolio would have performed against the SPY benchmark.
 
