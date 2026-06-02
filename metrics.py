@@ -1,39 +1,45 @@
-import pandas as pd
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 
 
-def total_return(portfolio: pd.Series) -> float:
-    """Percentage gain from first to last value."""
-    return (portfolio.iloc[-1] / portfolio.iloc[0]) - 1
+def total_return(values: pd.Series) -> float:
+    return (values.iloc[-1] / values.iloc[0]) - 1
 
 
-def annualized_return(portfolio: pd.Series) -> float:
-    """CAGR over the backtest period."""
-    days = (portfolio.index[-1] - portfolio.index[0]).days
-    years = days / 365.25
-    return (1 + total_return(portfolio)) ** (1 / years) - 1
+def annualized_return(values: pd.Series) -> float:
+    years = _years(values)
+    if years <= 0:
+        return np.nan
+
+    return (1 + total_return(values)) ** (1 / years) - 1
 
 
-def sharpe_ratio(portfolio: pd.Series, risk_free_rate: float = 0.04) -> float:
-    """
-    Risk-adjusted return. risk_free_rate is annual (default ~4%, roughly current T-bills).
-    """
-    daily_returns = portfolio.pct_change().dropna()
+def sharpe_ratio(values: pd.Series, risk_free_rate: float = 0.04) -> float:
+    daily_returns = values.pct_change().dropna()
+    if daily_returns.empty or daily_returns.std() == 0:
+        return np.nan
+
     excess = daily_returns - (risk_free_rate / 252)
-    return (excess.mean() / excess.std()) * np.sqrt(252)
+    return float((excess.mean() / excess.std()) * np.sqrt(252))
 
 
-def max_drawdown(portfolio: pd.Series) -> float:
-    """Largest peak-to-trough decline. Always <= 0."""
-    peak = portfolio.cummax()
-    drawdown = (portfolio - peak) / peak
-    return drawdown.min()
+def max_drawdown(values: pd.Series) -> float:
+    peak = values.cummax()
+    drawdown = (values - peak) / peak
+    return float(drawdown.min())
 
 
-def summary(portfolio: pd.Series, risk_free_rate: float = 0.04) -> dict:
+def summary(values: pd.Series, risk_free_rate: float = 0.04) -> dict[str, float]:
     return {
-        "total_return": total_return(portfolio),
-        "annualized_return": annualized_return(portfolio),
-        "sharpe_ratio": sharpe_ratio(portfolio, risk_free_rate),
-        "max_drawdown": max_drawdown(portfolio)
+        "total_return": total_return(values),
+        "annualized_return": annualized_return(values),
+        "sharpe_ratio": sharpe_ratio(values, risk_free_rate),
+        "max_drawdown": max_drawdown(values),
     }
+
+
+def _years(values: pd.Series) -> float:
+    days = (values.index[-1] - values.index[0]).days
+    return days / 365.25
